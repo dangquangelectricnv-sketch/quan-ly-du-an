@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hệ Thống Quản Lý Dự Án & Công Nợ</title>
+  <style>
+      * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+      }
+
+      body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          min-height: 100vh;
+          padding: 20px;
+      }
+
+      .container {
+          max-width: 1400px;
+          margin: 0 auto;
+          background: white;
+          border-radius: 20px;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+          overflow: hidden;
+      }
+
+      .header {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 30px;
+          text-align: center;
+      }
+
+      .header h1 {
+          font-size: 2.5em;
+          margin-bottom: 10px;
+      }
+
+      .tabs {
+          display: flex;
+          background: #f8f9fa;
+          border-bottom: 2px solid #dee2e6;
+          overflow-x: auto;
+      }
+
+      .tab {
+          padding: 15px 25px;
+          cursor: pointer;
+          border: none;
+          background: none;
+          font-size: 16px;
+          font-weight: 600;
+          color: #6c757d;
+          transition: all 0.3s;
+          white-space: nowrap;
+      }
+
+      .tab:hover {
+          background: #e9ecef;
+          color: #495057;
+      }
+
+      .tab.active {
+          background: white;
+          color: #667eea;
+          border-bottom: 3px solid #667eea;
+      }
+
+      .content {
+          padding: 30px;
+      }
+
+      .tab-content {
+          display: none;
+      }
+
+      .tab-content.active {
+          display: block;
+          animation: fadeIn 0.3s;
+      }
+
+      @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+      }
+
+      .form-group {
+          margin-bottom: 20px;
+      }
+
+      .form-group label {
+          display: block;
+          margin-bottom: 8px;
+          font-weight: 600;
+          color: #495057;
+      }
+
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+          width: 100%;
+          padding: 12px;
+          border: 2px solid #e9ecef;
+          border-radius: 8px;
+          font-size: 14px;
+          transition: border-color 0.3s;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+          outline: none;
+          border-color: #667eea;
+      }
+
+      .form-row {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 20px;
+      }
+
+      .btn {
+          padding: 12px 30px;
+          border: none;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s;
+          margin-right: 10px;
+      }
+
+      .btn-primary {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+      }
+
+      .btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn-success {
+          background: #28a745;
+          color: white;
+      }
+
+      .btn-danger {
+          background: #dc3545;
+          color: white;
+      }
+
+      .btn-warning {
+          background: #ffc107;
+          color: #212529;
+      }
+
+      .btn-info {
+          background: #17a2b8;
+          color: white;
+      }
+
+      .btn-secondary {
+          background: #6c757d;
+          color: white;
+      }
+
+      .project-card {
+          background: white;
+          border: 2px solid #e9ecef;
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 20px;
+          transition: all 0.3s;
+      }
+
+      .project-card.rejected {
+          background: #fff5f5;
+          border-color: #ffcdd2;
+          opacity: 0.9;
+      }
+
+      .project-card:hover {
+          box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+          transform: translateY(-2px);
+      }
+
+      .project-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 15px;
+      }
+
+      .project-title {
+          font-size: 1.3em;
+          font-weight: 700;
+          color: #212529;
+      }
+
+      .status-badge {
+          padding: 6px 15px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 600;
+          text-transform: uppercase;
+      }
+
+      .status-quote { background: #e3f2fd; color: #1976d2; }
+      .status-design { background: #f3e5f5; color: #7b1fa2; }
+      .status-production { background: #fff3e0; color: #e65100; }
+      .status-delivery { background: #e8f5e9; color: #2e7d32; }
+      .status-installation { background: #fce4ec; color: #c2185b; }
+      .status-payment { background: #e0f2f1; color: #00695c; }
+      .status-rejected { background: #ffebee; color: #c62828; }
+      .status-completed { background: #c8e6c9; color: #1b5e20; }
+
+      .project-info {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 15px;
+          margin-bottom: 15px;
+      }
+
+      .info-item {
+          display: flex;
+          flex-direction: column;
+      }
+
+      .info-label {
+          font-size: 12px;
+          color: #6c757d;
+          margin-bottom: 5px;
+      }
+
+      .info-value {
+          font-size: 14px;
+          font-weight: 600;
+          color: #212529;
+      }
+
+      .progress-bar {
+          width: 100%;
+          height: 8px;
+          background: #e9ecef;
+          border-radius: 10px;
+          overflow: hidden;
+          margin: 15px 0;
+      }
+
+      .progress-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+          transition: width 0.5s;
+      }
+
+      .action-buttons {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+      }
+
+      .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 20px;
+          margin-bottom: 30px;
+      }
+
+      .stat-card {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 25px;
+          border-radius: 12px;
+          text-align: center;
+      }
+
+      .stat-card h3 {
+          font-size: 2.5em;
+          margin-bottom: 10px;
+      }
+
+      .stat-card p {
+          font-size: 1em;
+          opacity: 0.9;
+      }
+
+      .filter-bar {
+          display: flex;
+          gap: 15px;
+          margin-bottom: 25px;
+          flex-wrap: wrap;
+      }
+
+      .filter-bar select,
+      .filter-bar input {
+          padding: 10px 15px;
+          border: 2px solid #e9ecef;
+          border-radius: 8px;
+          font-size: 14px;
+      }
+
+      .modal {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0,0,0,0.5);
+          z-index: 1000;
+          align-items: center;
+          justify-content: center;
+      }
+
+      .modal.active {
+          display: flex;
+      }
+
+      .modal-content {
+          background: white;
+          padding: 30px;
+          border-radius: 12px;
+          max-width: 700px;
+          width: 90%;
+          max-height: 80vh;
+          overflow-y: auto;
+      }
+
+      .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+      }
+
+      .modal-header h2 {
+          color: #212529;
+      }
+
+      .close-modal {
+          font-size: 28px;
+          cursor: pointer;
+          color: #6c757d;
+          background: none;
+          border: none;
+      }
+
+      .production-steps {
+          margin-top: 20px;
+      }
+
+      .step-item {
+          background: #f8f9fa;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 10px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+      }
+
+      .step-completed {
+          background: #d4edda;
+          border-left: 4px solid #28a745;
+      }
+
+      .checkbox-group {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-top: 10px;
+      }
+
+      .debt-section {
+          background: #f8f9fa;
+          border-radius: 12px;
+          padding: 20px;
+          margin-top: 15px;
+          border-left: 4px solid #667eea;
+      }
+
+      .debt-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 15px;
+      }
+
+      .debt-title {
+          font-size: 1.2em;
+          font-weight: 700;
+          color: #212529;
+      }
+
+      .debt-summary {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 15px;
+          margin-bottom: 20px;
+      }
+
+      .debt-item {
+          background: white;
+          padding: 15px;
+          border-radius: 8px;
+          text-align: center;
+      }
+
+      .debt-label {
+          font-size: 12px;
+          color: #6c757d;
+          margin-bottom: 5px;
+      }
+
+      .debt-value {
+          font-size: 1.5em;
+          font-weight: 700;
+      }
+
+      .debt-value.positive {
+          color: #28a745;
+      }
+
+      .debt-value.negative {
+          color: #dc3545;
+      }
+
+      .debt-value.neutral {
+          color: #ffc107;
+      }
+
+      .payment-history {
+          margin-top: 20px;
+      }
+
+      .payment-item {
+          background: white;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 10px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-left: 4px solid #28a745;
+      }
+
+      .payment-info {
+          flex: 1;
+      }
+
+      .payment-date {
+          font-size: 12px;
+          color: #6c757d;
+          margin-bottom: 5px;
+      }
+
+      .payment-amount {
+          font-size: 1.2em;
+          font-weight: 700;
+          color: #28a745;
+      }
+
+      .payment-note {
+          font-size: 14px;
+          color: #495057;
+          margin-top: 5px;
+      }
+
+      .delete-payment {
+          background: #dc3545;
+          color: white;
+          border: none;
+          padding: 8px 15px;
+          border-radius: 5px;
+          cursor: pointer;
+          font-size: 12px;
+      }
+
+      .debt-alert {
+          background: #fff3cd;
+          border: 2px solid #ffc107;
+          border-radius: 8px;
+          padding: 15px;
+          margin-bottom: 15px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+      }
+
+      .debt-alert.danger {
+          background: #f8d7da;
+          border-color: #dc3545;
+      }
+
+      .debt-alert.success {
+          background: #d4edda;
+          border-color: #28a745;
+      }
+
+      .table-responsive {
+          overflow-x: auto;
+      }
+
+      table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 20px;
+      }
+
+      table th,
+      table td {
+          padding: 12px;
+          text-align: left;
+          border-bottom: 1px solid #e9ecef;
+      }
+
+      table th {
+          background: #f8f9fa;
+          font-weight: 600;
+          color: #495057;
+      }
+
+      table tr:hover {
+          background: #f8f9fa;
+      }
+
+      .rejected-info {
+          background: #fff3cd;
+          border-left: 4px solid #ffc107;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 15px;
+      }
+
+      .rejected-reason {
+          background: #ffebee;
+          border-left: 4px solid #dc3545;
+          padding: 15px;
+          border-radius: 8px;
+          margin-top: 15px;
+      }
+
+      .rejected-reason h4 {
+          color: #c62828;
+          margin-bottom: 10px;
+      }
+
+      .timeline {
+          margin-top: 20px;
+      }
+
+      .timeline-item {
+          display: flex;
+          gap: 15px;
+          margin-bottom: 15px;
+          padding: 10px;
+          background: #f8f9fa;
+          border-radius: 8px;
+      }
+
+      .timeline-icon {
+          font-size: 24px;
+      }
+
+      .timeline-content {
+          flex: 1;
+      }
+
+      .timeline-date {
+          font-size: 12px;
+          color: #6c757d;
+      }
+
+      .timeline-text {
+          font-weight: 600;
+          color: #212529;
+          margin-top: 5px;
+      }
+
+      .empty-state {
+          text-align: center;
+          padding: 60px 20px;
+          color: #6c757d;
+      }
+
+      .empty-state-icon {
+          font-size: 64px;
+          margin-bottom: 20px;
+          opacity: 0.5;
+      }
+
+      .empty-state h3 {
+          margin-bottom: 10px;
+          color: #495057;
+      }
+
+      @media (max-width: 768px) {
+          .header h1 {
+              font-size: 1.8em;
+          }
+
+          .form-row {
+              grid-template-columns: 1fr;
+          }
+
+          .project-info {
+              grid-template-columns: 1fr;
+          }
+
+          .stats-grid {
+              grid-template-columns: 1fr;
+          }
+
+          .debt-summary {
+              grid-template-columns: 1fr;
+          }
+      }
+  </style>
+</head>
+<body>
+  <div class="container">
+      <div class="header">
+          <h1>🏭 HỆ THỐNG QUẢN LÝ DỰ ÁN & CÔNG NỢ</h1>
+          <p>Quản lý quy trình từ báo giá đến thanh toán & theo dõi công nợ chi tiết</p>
+      </div>
+
+      <div class="tabs">
+          <button class="tab active" onclick="switchTab('dashboard')">📊 Tổng Quan</button>
+          <button class="tab" onclick="switchTab('debt')">💰 Công Nợ</button>
+          <button class="tab" onclick="switchTab('quote')">📝 Báo Giá</button>
+          <button class="tab" onclick="switchTab('rejected')">❌ Báo Giá Bị Loại</button>
+          <button class="tab" onclick="switchTab('design')">🎨 Thiết Kế</button>
+          <button class="tab" onclick="switchTab('production')">⚙️ Sản Xuất</button>
+          <button class="tab" onclick="switchTab('delivery')">🚚 Giao Hàng</button>
+          <button class="tab" onclick="switchTab('installation')">🔧 Lắp Đặt</button>
+          <button class="tab" onclick="switchTab('payment')">💳 Thanh Toán</button>
+      </div>
+
+      <div class="content">
+          <!-- Dashboard Tab -->
+          <div id="dashboard" class="tab-content active">
+              <h2 style="margin-bottom: 20px;">Thống Kê Tổng Quan</h2>
+              <div class="stats-grid">
+                  <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                      <h3 id="totalProjects">0</h3>
+                      <p>Tổng Dự Án</p>
+                  </div>
+                  <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                      <h3 id="activeProjects">0</h3>
+                      <p>Đang Thực Hiện</p>
+                  </div>
+                  <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                      <h3 id="completedProjects">0</h3>
+                      <p>Hoàn Thành</p>
+                  </div>
+                  <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                      <h3 id="totalRevenue">0đ</h3>
+                      <p>Tổng Doanh Thu</p>
+                  </div>
+                  <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                      <h3 id="totalDebt">0đ</h3>
+                      <p>Tổng Công Nợ</p>
+                  </div>
+                  <div class="stat-card" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);">
+                      <h3 id="rejectedProjects">0</h3>
+                      <p>Báo Giá Bị Loại</p>
+                  </div>
+              </div>
+
+              <h3 style="margin-bottom: 15px;">Danh Sách Dự Án</h3>
+              <div class="filter-bar">
+                  <select id="filterStatus" onchange="filterProjects()">
+                      <option value="">Tất cả trạng thái</option>
+                      <option value="quote">Báo giá</option>
+                      <option value="design">Thiết kế</option>
+                      <option value="production">Sản xuất</option>
+                      <option value="delivery">Giao hàng</option>
+                      <option value="installation">Lắp đặt</option>
+                      <option value="payment">Thanh toán</option>
+                      <option value="completed">Hoàn thành</option>
+                  </select>
+                  <select id="filterDebt" onchange="filterProjects()">
+                      <option value="">Tất cả công nợ</option>
+                      <option value="has-debt">Còn nợ</option>
+                      <option value="paid">Đã thanh toán</option>
+                  </select>
+                  <input type="text" id="searchProject" placeholder="🔍 Tìm kiếm dự án..." oninput="filterProjects()">
+              </div>
+              <div id="projectsList"></div>
+          </div>
+
+          <!-- Debt Management Tab -->
+          <div id="debt" class="tab-content">
+              <h2 style="margin-bottom: 20px;">Quản Lý Công Nợ</h2>
+              
+              <div class="stats-grid">
+                  <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                      <h3 id="debtTotal">0đ</h3>
+                      <p>Tổng Công Nợ</p>
+                  </div>
+                  <div class="stat-card" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+                      <h3 id="debtPaid">0đ</h3>
+                      <p>Đã Thu</p>
+                  </div>
+                  <div class="stat-card" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                      <h3 id="debtRemaining">0đ</h3>
+                      <p>Còn Lại</p>
+                  </div>
+                  <div class="stat-card" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);">
+                      <h3 id="debtProjects">0</h3>
+                      <p>Dự Án Còn Nợ</p>
+                  </div>
+              </div>
+
+              <h3 style="margin-bottom: 15px;">Danh Sách Công Nợ</h3>
+              <div class="table-responsive">
+                  <table id="debtTable">
+                      <thead>
+                          <tr>
+                              <th>Mã DA</th>
+                              <th>Tên Dự Án</th>
+                              <th>Khách Hàng</th>
+                              <th>Tổng Giá Trị</th>
+                              <th>Đã Thanh Toán</th>
+                              <th>Còn Lại</th>
+                              <th>Trạng Thái</th>
+                              <th>Thao Tác</th>
+                          </tr>
+                      </thead>
+                      <tbody id="debtTableBody">
+                      </tbody>
+                  </table>
+              </div>
+          </div>
+
+          <!-- Quote Tab -->
+          <div id="quote" class="tab-content">
+              <h2 style="margin-bottom: 20px;">Tạo Báo Giá Mới</h2>
+              <form onsubmit="createQuote(event)">
+                  <div class="form-row">
+                      <div class="form-group">
+                          <label>Mã Dự Án *</label>
+                          <input type="text" id="projectCode" required placeholder="VD: DA001">
+                      </div>
+                      <div class="form-group">
+                          <label>Tên Dự Án *</label>
+                          <input type="text" id="projectName" required placeholder="Nhập tên dự án">
+                      </div>
+                  </div>
+                  <div class="form-row">
+                      <div class="form-group">
+                          <label>Khách Hàng *</label>
+                          <input type="text" id="customerName" required placeholder="Tên khách hàng">
+                      </div>
+                      <div class="form-group">
+                          <label>Số Điện Thoại</label>
+                          <input type="tel" id="customerPhone" placeholder="0123456789">
+                      </div>
+                  </div>
+                  <div class="form-row">
+                      <div class="form-group">
+                          <label>Giá Trị Báo Giá (VNĐ) *</label>
+                          <input type="number" id="quoteValue" required placeholder="0">
+                      </div>
+                      <div class="form-group">
+                          <label>Ngày Báo Giá *</label>
+                          <input type="date" id="quoteDate" required>
+                      </div>
+                  </div>
+                  <div class="form-group">
+                      <label>Cần Lắp Đặt?</label>
+                      <div class="checkbox-group">
+                          <input type="checkbox" id="needInstallation">
+                          <label for="needInstallation">Dự án cần lắp đặt</label>
+                      </div>
+                  </div>
+                  <div class="form-group">
+                      <label>Ghi Chú</label>
+                      <textarea id="quoteNote" rows="3" placeholder="Ghi chú về báo giá..."></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-primary">✅ Tạo Báo Giá</button>
+              </form>
+
+              <h3 style="margin-top: 40px; margin-bottom: 20px;">Danh Sách Báo Giá</h3>
+              <div id="quotesList"></div>
+          </div>
+
+          <!-- Rejected Quotes Tab -->
+          <div id="rejected" class="tab-content">
+              <h2 style="margin-bottom: 20px;">📋 Báo Giá Đã Bị Loại</h2>
+              
+              <div class="rejected-info">
+                  <strong>ℹ️ Thông tin:</strong> Đây là danh sách các báo giá đã bị từ chối. Bạn có thể xem lại thông tin, khôi phục hoặc xóa vĩnh viễn.
+              </div>
+
+              <div class="filter-bar">
+                  <input type="text" id="searchRejected" placeholder="🔍 Tìm kiếm báo giá bị loại..." oninput="renderRejectedQuotes()">
+                  <select id="sortRejected" onchange="renderRejectedQuotes()">
+                      <option value="newest">Mới nhất</option>
+                      <option value="oldest">Cũ nhất</option>
+                      <option value="value-high">Giá trị cao</option>
+                      <option value="value-low">Giá trị thấp</option>
+                  </select>
+              </div>
+
+              <div id="rejectedList"></div>
+          </div>
+
+          <!-- Design Tab -->
+          <div id="design" class="tab-content">
+              <h2 style="margin-bottom: 20px;">Quản Lý Thiết Kế</h2>
+              <div id="designList"></div>
+          </div>
+
+          <!-- Production Tab -->
+          <div id="production" class="tab-content">
+              <h2 style="margin-bottom: 20px;">Quản Lý Sản Xuất</h2>
+              <div id="productionList"></div>
+          </div>
+
+          <!-- Delivery Tab -->
+          <div id="delivery" class="tab-content">
+              <h2 style="margin-bottom: 20px;">Quản Lý Giao Hàng</h2>
+              <div id="deliveryList"></div>
+          </div>
+
+          <!-- Installation Tab -->
+          <div id="installation" class="tab-content">
+              <h2 style="margin-bottom: 20px;">Quản Lý Lắp Đặt</h2>
+              <div id="installationList"></div>
+          </div>
+
+          <!-- Payment Tab -->
+          <div id="payment" class="tab-content">
+              <h2 style="margin-bottom: 20px;">Quản Lý Thanh Toán</h2>
+              <div id="paymentList"></div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Modal for Production Details -->
+  <div id="productionModal" class="modal">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h2>Chi Tiết Sản Xuất</h2>
+              <button class="close-modal" onclick="closeModal('productionModal')">&times;</button>
+          </div>
+          <div id="productionModalContent"></div>
+      </div>
+  </div>
+
+  <!-- Modal for Debt Management -->
+  <div id="debtModal" class="modal">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h2>Quản Lý Công Nợ</h2>
+              <button class="close-modal" onclick="closeModal('debtModal')">&times;</button>
+          </div>
+          <div id="debtModalContent"></div>
+      </div>
+  </div>
+
+  <!-- Modal for Rejected Quote Details -->
+  <div id="rejectedModal" class="modal">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h2>Chi Tiết Báo Giá Bị Loại</h2>
+              <button class="close-modal" onclick="closeModal('rejectedModal')">&times;</button>
+          </div>
+          <div id="rejectedModalContent"></div>
+      </div>
+  </div>
+
+  <script>
+      let projects = JSON.parse(localStorage.getItem('projects')) || [];
+
+      function switchTab(tabName) {
+          document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+          
+          event.target.classList.add('active');
+          document.getElementById(tabName).classList.add('active');
+          
+          renderContent();
+      }
+
+      function createQuote(event) {
+          event.preventDefault();
+          
+          const project = {
+              id: Date.now(),
+              code: document.getElementById('projectCode').value,
+              name: document.getElementById('projectName').value,
+              customer: document.getElementById('customerName').value,
+              phone: document.getElementById('customerPhone').value,
+              value: parseInt(document.getElementById('quoteValue').value),
+              quoteDate: document.getElementById('quoteDate').value,
+              needInstallation: document.getElementById('needInstallation').checked,
+              note: document.getElementById('quoteNote').value,
+              status: 'quote',
+              createdAt: new Date().toISOString(),
+              timeline: [{
+                  step: 'quote',
+                  date: new Date().toISOString(),
+                  note: 'Tạo báo giá'
+              }],
+              production: {
+                  orderMaterials: false,
+                  assembly: false,
+                  testing: false
+              },
+              payments: [],
+              totalPaid: 0
+          };
+
+          projects.push(project);
+          saveProjects();
+          
+          event.target.reset();
+          alert('✅ Tạo báo giá thành công!');
+          renderContent();
+      }
+
+      function approveQuote(id) {
+          const project = projects.find(p => p.id === id);
+          if (project) {
+              project.status = 'design';
+              project.timeline.push({
+                  step: 'design',
+                  date: new Date().toISOString(),
+                  note: 'Chuyển sang thiết kế'
+              });
+              saveProjects();
+              renderContent();
+              alert('✅ Báo giá được chấp nhận! Chuyển sang giai đoạn thiết kế.');
+          }
+      }
+
+      function rejectQuote(id) {
+          const reason = prompt('Lý do từ chối báo giá:');
+          if (reason !== null) {
+              const project = projects.find(p => p.id === id);
+              if (project) {
+                  project.status = 'rejected';
+                  project.rejectedReason = reason || 'Không có lý do cụ thể';
+                  project.rejectedDate = new Date().toISOString();
+                  project.timeline.push({
+                      step: 'rejected',
+                      date: new Date().toISOString(),
+                      note: `Báo giá bị từ chối: ${project.rejectedReason}`
+                  });
+                  saveProjects();
+                  renderContent();
+                  alert('❌ Báo giá đã bị từ chối!');
+              }
+          }
+      }
+
+      function restoreQuote(id) {
+          if (confirm('Bạn có chắc muốn khôi phục báo giá này?')) {
+              const project = projects.find(p => p.id === id);
+              if (project) {
+                  project.status = 'quote';
+                  project.timeline.push({
+                      step: 'restored',
+                      date: new Date().toISOString(),
+                      note: 'Khôi phục báo giá'
+                  });
+                  delete project.rejectedReason;
+                  delete project.rejectedDate;
+                  saveProjects();
+                  renderContent();
+                  alert('✅ Đã khôi phục báo giá!');
+              }
+          }
+      }
+
+      function viewRejectedDetails(id) {
+          const project = projects.find(p => p.id === id);
+          if (!project) return;
+
+          const modal = document.getElementById('rejectedModal');
+          const content = document.getElementById('rejectedModalContent');
+
+          content.innerHTML = `
+              <div class="project-info">
+                  <div class="info-item">
+                      <span class="info-label">Mã Dự Án</span>
+                      <span class="info-value">${project.code}</span>
+                  </div>
+                  <div class="info-item">
+                      <span class="info-label">Tên Dự Án</span>
+                      <span class="info-value">${project.name}</span>
+                  </div>
+                  <div class="info-item">
+                      <span class="info-label">Khách Hàng</span>
+                      <span class="info-value">${project.customer}</span>
+                  </div>
+                  <div class="info-item">
+                      <span class="info-label">Số Điện Thoại</span>
+                      <span class="info-value">${project.phone || 'Không có'}</span>
+                  </div>
+                  <div class="info-item">
+                      <span class="info-label">Giá Trị</span>
+                      <span class="info-value">${formatCurrency(project.value)}</span>
+                  </div>
+                  <div class="info-item">
+                      <span class="info-label">Ngày Báo Giá</span>
+                      <span class="info-value">${formatDate(project.quoteDate)}</span>
+                  </div>
+                  <div class="info-item">
+                      <span class="info-label">Ngày Từ Chối</span>
+                      <span class="info-value">${formatDate(project.rejectedDate)}</span>
+                  </div>
+                  <div class="info-item">
+                      <span class="info-label">Lắp Đặt</span>
+                      <span class="info-value">${project.needInstallation ? '✅ Có' : '❌ Không'}</span>
+                  </div>
+              </div>
+
+              <div class="rejected-reason">
+                  <h4>❌ Lý Do Từ Chối</h4>
+                  <p>${project.rejectedReason}</p>
+              </div>
+
+              ${project.note ? `
+                  <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                      <strong>📝 Ghi Chú:</strong>
+                      <p style="margin-top: 5px;">${project.note}</p>
+                  </div>
+              ` : ''}
+
+              <div class="timeline">
+                  <h4 style="margin-bottom: 15px;">📅 Lịch Sử</h4>
+                  ${project.timeline.map(item => `
+                      <div class="timeline-item">
+                          <div class="timeline-icon">${getTimelineIcon(item.step)}</div>
+                          <div class="timeline-content">
+                              <div class="timeline-date">${formatDateTime(item.date)}</div>
+                              <div class="timeline-text">${item.note}</div>
+                          </div>
+                      </div>
+                  `).reverse().join('')}
+              </div>
+
+              <div style="margin-top: 25px; display: flex; gap: 10px;">
+                  <button class="btn btn-success" onclick="restoreQuote(${project.id}); closeModal('rejectedModal')">
+                      ♻️ Khôi Phục Báo Giá
+                  </button>
+                  <button class="btn btn-danger" onclick="permanentDeleteProject(${project.id}); closeModal('rejectedModal')">
+                      🗑️ Xóa Vĩnh Viễn
+                  </button>
+              </div>
+          `;
+
+          modal.classList.add('active');
+      }
+
+      function getTimelineIcon(step) {
+          const icons = {
+              'quote': '📝',
+              'rejected': '❌',
+              'restored': '♻️',
+              'design': '🎨',
+              'production': '⚙️',
+              'delivery': '🚚',
+              'installation': '🔧',
+              'payment': '💰',
+              'completed': '✅'
+          };
+          return icons[step] || '📌';
+      }
+
+      function permanentDeleteProject(id) {
+          if (confirm('⚠️ CẢNH BÁO: Bạn có chắc muốn xóa vĩnh viễn dự án này? Hành động này không thể hoàn tác!')) {
+              projects = projects.filter(p => p.id !== id);
+              saveProjects();
+              renderContent();
+              alert('🗑️ Đã xóa vĩnh viễn dự án!');
+          }
+      }
+
+      function renderRejectedQuotes() {
+          const search = document.getElementById('searchRejected').value.toLowerCase();
+          const sort = document.getElementById('sortRejected').value;
+          
+          let rejected = projects.filter(p => p.status === 'rejected');
+
+          // Filter by search
+          if (search) {
+              rejected = rejected.filter(p => 
+                  p.code.toLowerCase().includes(search) ||
+                  p.name.toLowerCase().includes(search) ||
+                  p.customer.toLowerCase().includes(search) ||
+                  (p.rejectedReason && p.rejectedReason.toLowerCase().includes(search))
+              );
+          }
+
+          // Sort
+          switch(sort) {
+              case 'newest':
+                  rejected.sort((a, b) => new Date(b.rejectedDate) - new Date(a.rejectedDate));
+                  break;
+              case 'oldest':
+                  rejected.sort((a, b) => new Date(a.rejectedDate) - new Date(b.rejectedDate));
+                  break;
+              case 'value-high':
+                  rejected.sort((a, b) => b.value - a.value);
+                  break;
+              case 'value-low':
+                  rejected.sort((a, b) => a.value - b.value);
+                  break;
+          }
+
+          const listElement = document.getElementById('rejectedList');
+          
+          if (rejected.length === 0) {
+              listElement.innerHTML = `
+                  <div class="empty-state">
+                      <div class="empty-state-icon">✅</div>
+                      <h3>Không có báo giá bị loại</h3>
+                      <p>Tất cả báo giá đều đang được xử lý hoặc đã hoàn thành</p>
+                  </div>
+              `;
+          } else {
+              listElement.innerHTML = rejected.map(project => `
+                  <div class="project-card rejected">
+                      <div class="project-header">
+                          <div class="project-title">
+                              ${project.code} - ${project.name}
+                              <span style="font-size: 0.7em; color: #6c757d; font-weight: normal;">
+                                  (Từ chối: ${formatDate(project.rejectedDate)})
+                              </span>
+                          </div>
+                          <span class="status-badge status-rejected">Đã Từ Chối</span>
+                      </div>
+                      <div class="project-info">
+                          <div class="info-item">
+                              <span class="info-label">Khách hàng</span>
+                              <span class="info-value">${project.customer}</span>
+                          </div>
+                          <div class="info-item">
+                              <span class="info-label">Giá trị</span>
+                              <span class="info-value">${formatCurrency(project.value)}</span>
+                          </div>
+                          <div class="info-item">
+                              <span class="info-label">Ngày báo giá</span>
+                              <span class="info-value">${formatDate(project.quoteDate)}</span>
+                          </div>
+                          <div class="info-item">
+                              <span class="info-label">Lắp đặt</span>
+                              <span class="info-value">${project.needInstallation ? '✅ Có' : '❌ Không'}</span>
+                          </div>
+                      </div>
+                      <div class="rejected-reason">
+                          <h4>Lý do từ chối:</h4>
+                          <p>${project.rejectedReason}</p>
+                      </div>
+                      <div class="action-buttons" style="margin-top: 15px;">
+                          <button class="btn btn-info" onclick="viewRejectedDetails(${project.id})">
+                              👁️ Xem Chi Tiết
+                          </button>
+                          <button class="btn btn-success" onclick="restoreQuote(${project.id})">
+                              ♻️ Khôi Phục
+                          </button>
+                          <button class="btn btn-danger" onclick="permanentDeleteProject(${project.id})">
+                              🗑️ Xóa Vĩnh Viễn
+                          </button>
+                      </div>
+                  </div>
+              `).join('');
+          }
+      }
+
+      function moveToProduction(id) {
+          const project = projects.find(p => p.id === id);
+          if (project) {
+              project.status = 'production';
+              project.timeline.push({
+                  step: 'production',
+                  date: new Date().toISOString(),
+                  note: 'Bắt đầu sản xuất'
+              });
+              saveProjects();
+              renderContent();
+              alert('✅ Chuyển sang giai đoạn sản xuất!');
+          }
+      }
+
+      function openProductionModal(id) {
+          const project = projects.find(p => p.id === id);
+          if (!project) return;
+
+          const modal = document.getElementById('productionModal');
+          const content = document.getElementById('productionModalContent');
+          
+          content.innerHTML = `
+              <h3>${project.name}</h3>
+              <div class="production-steps">
+                  <div class="step-item ${project.production.orderMaterials ? 'step-completed' : ''}">
+                      <span>📦 Đặt vật tư</span>
+                      <input type="checkbox" ${project.production.orderMaterials ? 'checked' : ''} 
+                             onchange="updateProductionStep(${id}, 'orderMaterials', this.checked)">
+                  </div>
+                  <div class="step-item ${project.production.assembly ? 'step-completed' : ''}">
+                      <span>🔧 Lắp ráp</span>
+                      <input type="checkbox" ${project.production.assembly ? 'checked' : ''} 
+                             onchange="updateProductionStep(${id}, 'assembly', this.checked)">
+                  </div>
+                  <div class="step-item ${project.production.testing ? 'step-completed' : ''}">
+                      <span>✅ Test xuất xưởng</span>
+                      <input type="checkbox" ${project.production.testing ? 'checked' : ''} 
+                             onchange="updateProductionStep(${id}, 'testing', this.checked)">
+                  </div>
+              </div>
+              <button class="btn btn-success" onclick="completeProduction(${id})" 
+                      ${project.production.orderMaterials && project.production.assembly && project.production.testing ? '' : 'disabled'}>
+                  Hoàn Thành Sản Xuất
+              </button>
+          `;
+          
+          modal.classList.add('active');
+      }
+
+      function updateProductionStep(id, step, checked) {
+          const project = projects.find(p => p.id === id);
+          if (project) {
+              project.production[step] = checked;
+              saveProjects();
+              openProductionModal(id);
+          }
+      }
+
+      function completeProduction(id) {
+          const project = projects.find(p => p.id === id);
+          if (project && project.production.orderMaterials && project.production.assembly && project.production.testing) {
+              project.status = 'delivery';
+              project.timeline.push({
+                  step: 'delivery',
+                  date: new Date().toISOString(),
+                  note: 'Hoàn thành sản xuất, chuyển sang giao hàng'
+              });
+              saveProjects();
+              closeModal('productionModal');
+              renderContent();
+              alert('✅ Hoàn thành sản xuất! Chuyển sang giai đoạn giao hàng.');
+          }
+      }
+
+      function completeDelivery(id) {
+          const project = projects.find(p => p.id === id);
+          if (project) {
+              if (project.needInstallation) {
+                  project.status = 'installation';
+                  project.timeline.push({
+                      step: 'installation',
+                      date: new Date().toISOString(),
+                      note: 'Hoàn thành giao hàng, chuyển sang lắp đặt'
+                  });
+                  alert('✅ Hoàn thành giao hàng! Chuyển sang giai đoạn lắp đặt.');
+              } else {
+                  project.status = 'payment';
+                  project.timeline.push({
+                      step: 'payment',
+                      date: new Date().toISOString(),
+                      note: 'Hoàn thành giao hàng, chuyển sang thanh toán'
+                  });
+                  alert('✅ Hoàn thành giao hàng! Chuyển sang giai đoạn thanh toán.');
+              }
+              saveProjects();
+              renderContent();
+          }
+      }
+
+      function completeInstallation(id) {
+          const project = projects.find(p => p.id === id);
+          if (project) {
+              project.status = 'payment';
+              project.timeline.push({
+                  step: 'payment',
+                  date: new Date().toISOString(),
+                  note: 'Hoàn thành lắp đặt, chuyển sang thanh toán'
+              });
+              saveProjects();
+              renderContent();
+              alert('✅ Hoàn thành lắp đặt! Chuyển sang giai đoạn thanh toán.');
+          }
+      }
+
+      function completePayment(id) {
+          const project = projects.find(p => p.id === id);
+          if (!project) return;
+
+          const remaining = project.value - project.totalPaid;
+          if (remaining > 0) {
+              if (!confirm(`Dự án còn nợ ${formatCurrency(remaining)}. Bạn có chắc muốn hoàn thành?`)) {
+                  return;
+              }
+          }
+
+          project.status = 'completed';
+          project.completedDate = new Date().toISOString();
+          project.timeline.push({
+              step: 'completed',
+              date: new Date().toISOString(),
+              note: 'Hoàn thành dự án'
+          });
+          saveProjects();
+          renderContent();
+          alert('🎉 Hoàn thành dự án!');
+      }
+
+      function openDebtModal(id) {
+          const project = projects.find(p => p.id === id);
+          if (!project) return;
+
+          const modal = document.getElementById('debtModal');
+          const content = document.getElementById('debtModalContent');
+          
+          const remaining = project.value - project.totalPaid;
+          const percentage = (project.totalPaid / project.value * 100).toFixed(1);
+
+          content.innerHTML = `
+              <h3>${project.code} - ${project.name}</h3>
+              <div class="debt-summary">
+                  <div class="debt-item">
+                      <div class="debt-label">Tổng Giá Trị</div>
+                      <div class="debt-value neutral">${formatCurrency(project.value)}</div>
+                  </div>
+                  <div class="debt-item">
+                      <div class="debt-label">Đã Thanh Toán</div>
+                      <div class="debt-value positive">${formatCurrency(project.totalPaid)}</div>
+                  </div>
+                  <div class="debt-item">
+                      <div class="debt-label">Còn Lại</div>
+                      <div class="debt-value ${remaining > 0 ? 'negative' : 'positive'}">${formatCurrency(remaining)}</div>
+                  </div>
+                  <div class="debt-item">
+                      <div class="debt-label">Tỷ Lệ</div>
+                      <div class="debt-value">${percentage}%</div>
+                  </div>
+              </div>
+
+              ${remaining > 0 ? `
+                  <div class="debt-alert ${remaining > project.value * 0.5 ? 'danger' : ''}">
+                      <span style="font-size: 24px;">⚠️</span>
+                      <div>
+                          <strong>Cảnh báo công nợ</strong><br>
+                          Dự án còn nợ ${formatCurrency(remaining)} (${(100 - percentage).toFixed(1)}%)
+                      </div>
+                  </div>
+              ` : `
+                  <div class="debt-alert success">
+                      <span style="font-size: 24px;">✅</span>
+                      <div>
+                          <strong>Đã thanh toán đủ</strong><br>
+                          Dự án đã được thanh toán 100%
+                      </div>
+                  </div>
+              `}
+
+              <div class="progress-bar" style="height: 20px; margin: 20px 0;">
+                  <div class="progress-fill" style="width: ${percentage}%; background: ${percentage < 50 ? '#dc3545' : percentage < 100 ? '#ffc107' : '#28a745'}"></div>
+              </div>
+
+              <h4 style="margin-top: 25px; margin-bottom: 15px;">Thêm Thanh Toán Mới</h4>
+              <form onsubmit="addPayment(event, ${id})">
+                  <div class="form-group">
+                      <label>Số Tiền (VNĐ) *</label>
+                      <input type="number" id="paymentAmount" required placeholder="0" max="${remaining}">
+                  </div>
+                  <div class="form-group">
+                      <label>Ngày Thanh Toán *</label>
+                      <input type="date" id="paymentDate" required value="${new Date().toISOString().split('T')[0]}">
+                  </div>
+                  <div class="form-group">
+                      <label>Ghi Chú</label>
+                      <textarea id="paymentNote" rows="2" placeholder="Ghi chú về khoản thanh toán..."></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-success" ${remaining <= 0 ? 'disabled' : ''}>💰 Thêm Thanh Toán</button>
+              </form>
+
+              <div class="payment-history">
+                  <h4 style="margin-bottom: 15px;">Lịch Sử Thanh Toán (${project.payments.length})</h4>
+                  ${project.payments.length === 0 ? 
+                      '<p style="text-align: center; color: #6c757d; padding: 20px;">Chưa có thanh toán nào</p>' :
+                      project.payments.map((payment, index) => `
+                          <div class="payment-item">
+                              <div class="payment-info">
+                                  <div class="payment-date">📅 ${formatDate(payment.date)}</div>
+                                  <div class="payment-amount">${formatCurrency(payment.amount)}</div>
+                                  ${payment.note ? `<div class="payment-note">${payment.note}</div>` : ''}
+                              </div>
+                              <button class="delete-payment" onclick="deletePayment(${id}, ${index})">🗑️ Xóa</button>
+                          </div>
+                      `).reverse().join('')
+                  }
+              </div>
+          `;
+          
+          modal.classList.add('active');
+      }
+
+      function addPayment(event, projectId) {
+          event.preventDefault();
+          
+          const project = projects.find(p => p.id === projectId);
+          if (!project) return;
+
+          const amount = parseInt(document.getElementById('paymentAmount').value);
+          const date = document.getElementById('paymentDate').value;
+          const note = document.getElementById('paymentNote').value;
+
+          const remaining = project.value - project.totalPaid;
+          if (amount > remaining) {
+              alert(`⚠️ Số tiền thanh toán vượt quá số tiền còn lại (${formatCurrency(remaining)})`);
+              return;
+          }
+
+          const payment = {
+              amount: amount,
+              date: date,
+              note: note,
+              createdAt: new Date().toISOString()
+          };
+
+          project.payments.push(payment);
+          project.totalPaid += amount;
+          
+          project.timeline.push({
+              step: 'payment',
+              date: new Date().toISOString(),
+              note: `Thanh toán ${formatCurrency(amount)}`
+          });
+
+          saveProjects();
+          openDebtModal(projectId);
+          renderContent();
+          alert('✅ Thêm thanh toán thành công!');
+      }
+
+      function deletePayment(projectId, paymentIndex) {
+          if (!confirm('Bạn có chắc muốn xóa khoản thanh toán này?')) return;
+
+          const project = projects.find(p => p.id === projectId);
+          if (!project) return;
+
+          const payment = project.payments[paymentIndex];
+          project.totalPaid -= payment.amount;
+          project.payments.splice(paymentIndex, 1);
+
+          saveProjects();
+          openDebtModal(projectId);
+          renderContent();
+      }
+
+      function deleteProject(id) {
+          if (confirm('Bạn có chắc muốn xóa dự án này?')) {
+              projects = projects.filter(p => p.id !== id);
+              saveProjects();
+              renderContent();
+          }
+      }
+
+      function closeModal(modalId) {
+          document.getElementById(modalId).classList.remove('active');
+      }
+
+      function getStatusText(status) {
+          const statusMap = {
+              'quote': 'Báo giá',
+              'design': 'Thiết kế',
+              'production': 'Sản xuất',
+              'delivery': 'Giao hàng',
+              'installation': 'Lắp đặt',
+              'payment': 'Thanh toán',
+              'rejected': 'Đã từ chối',
+              'completed': 'Hoàn thành'
+          };
+          return statusMap[status] || status;
+      }
+
+      function getProgress(status) {
+          const progressMap = {
+              'quote': 10,
+              'design': 25,
+              'production': 50,
+              'delivery': 70,
+              'installation': 85,
+              'payment': 95,
+              'completed': 100,
+              'rejected': 0
+          };
+          return progressMap[status] || 0;
+      }
+
+      function formatCurrency(amount) {
+          return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+      }
+
+      function formatDate(dateString) {
+          return new Date(dateString).toLocaleDateString('vi-VN');
+      }
+
+      function formatDateTime(dateString) {
+          return new Date(dateString).toLocaleString('vi-VN');
+      }
+
+      function renderProjectCard(project) {
+          const progress = getProgress(project.status);
+          const remaining = project.value - project.totalPaid;
+          const paymentPercentage = (project.totalPaid / project.value * 100).toFixed(0);
+          
+          return `
+              <div class="project-card">
+                  <div class="project-header">
+                      <div class="project-title">${project.code} - ${project.name}</div>
+                      <span class="status-badge status-${project.status}">${getStatusText(project.status)}</span>
+                  </div>
+                  <div class="project-info">
+                      <div class="info-item">
+                          <span class="info-label">Khách hàng</span>
+                          <span class="info-value">${project.customer}</span>
+                      </div>
+                      <div class="info-item">
+                          <span class="info-label">Giá trị</span>
+                          <span class="info-value">${formatCurrency(project.value)}</span>
+                      </div>
+                      <div class="info-item">
+                          <span class="info-label">Đã thanh toán</span>
+                          <span class="info-value" style="color: #28a745;">${formatCurrency(project.totalPaid)} (${paymentPercentage}%)</span>
+                      </div>
+                      <div class="info-item">
+                          <span class="info-label">Còn lại</span>
+                          <span class="info-value" style="color: ${remaining > 0 ? '#dc3545' : '#28a745'};">${formatCurrency(remaining)}</span>
+                      </div>
+                  </div>
+
+                  ${remaining > 0 && project.status !== 'quote' && project.status !== 'rejected' ? `
+                      <div class="debt-alert" style="margin: 15px 0;">
+                          <span style="font-size: 20px;">💰</span>
+                          <div style="flex: 1;">
+                              <strong>
